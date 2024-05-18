@@ -91,7 +91,7 @@ namespace BBDown.Core
             if (Config.TOKEN != "") paramBuilder.Append($"access_key={Config.TOKEN}&");
             paramBuilder.Append($"aid={aid}");
             if (isBiliPlus) paramBuilder.Append("&appkey=7d089525d3611b1c");
-+            paramBuilder.Append($"&cid={cid}&ep_id={epId}&platform=android&prefer_code_type={code}&qn={qn}&s_locale=en_us");
+            paramBuilder.Append($"&cid={cid}&ep_id={epId}&platform=android&prefer_code_type={code}&qn={qn}&s_locale=en_us");
             if (isBiliPlus) paramBuilder.Append($"&ts={GetTimeStamp(true)}");
 
             string param = paramBuilder.ToString();
