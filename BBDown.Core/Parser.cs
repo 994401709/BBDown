@@ -85,13 +85,13 @@ namespace BBDown.Core
         private static async Task<string> GetPlayJsonAsync(string aid, string cid, string epId, string qn, string code = "0")
         {
             bool isBiliPlus = Config.HOST != "api.bilibili.com";
-            string api = $"https://{(isBiliPlus ? Config.HOST : "api.biliintl.com")}/intl/gateway/v2/ogv/playurl?";
+            string api = $"https://{(isBiliPlus ? Config.HOST : "api.biliintl.com")}/intl/gateway/web/playurl?";
 
             StringBuilder paramBuilder = new();
             if (Config.TOKEN != "") paramBuilder.Append($"access_key={Config.TOKEN}&");
             paramBuilder.Append($"aid={aid}");
-            if (isBiliPlus) paramBuilder.Append("&appkey=7d089525d3611b1c");
-            paramBuilder.Append($"&cid={cid}&ep_id={epId}&platform=android&prefer_code_type={code}&qn={qn}&s_locale=en_jp");
+            if (isBiliPlus) paramBuilder.Append($"&s_locale=en_US&appkey=7d089525d3611b1c&area={(Config.AREA == "" ? "th" : Config.AREA)}");
+            paramBuilder.Append($"&cid={cid}&ep_id={epId}&platform=web&prefer_code_type={code}&qn={qn}");
             if (isBiliPlus) paramBuilder.Append($"&ts={GetTimeStamp(true)}");
 
             string param = paramBuilder.ToString();
@@ -114,18 +114,18 @@ namespace BBDown.Core
             var data = respJson.RootElement;
 
             //intl接口
-            if (parsedResult.WebJsonString.Contains("\"stream_list\""))
+            if (parsedResult.WebJsonString.Contains("\"video_resource\""))
             {
-                int pDur = data.GetProperty("data").GetProperty("video_info").GetProperty("timelength").GetInt32() / 1000;
-                var audio = data.GetProperty("data").GetProperty("video_info").GetProperty("dash_audio").EnumerateArray().ToList();
-                foreach(var stream in data.GetProperty("data").GetProperty("video_info").GetProperty("stream_list").EnumerateArray())
+                int pDur = data.GetProperty("data").GetProperty("playurl").GetProperty("duration").GetInt32() / 1000;
+                var audio = data.GetProperty("data").GetProperty("playurl").GetProperty("audio_resource").EnumerateArray().ToList();
+                foreach(var stream in data.GetProperty("data").GetProperty("playurl").GetProperty("video").EnumerateArray())
                 {
-                    if (stream.TryGetProperty("dash_video", out JsonElement dashVideo))
+                    if (stream.TryGetProperty("video_resource", out JsonElement dashVideo))
                     {
-                        if (dashVideo.GetProperty("base_url").ToString() != "")
+                        if (dashVideo.GetProperty("url").ToString() != "")
                         {
                             var videoId = stream.GetProperty("stream_info").GetProperty("quality").ToString();
-                            var urlList = new List<string>() { dashVideo.GetProperty("base_url").ToString() };
+                            var urlList = new List<string>() { dashVideo.GetProperty("url").ToString() };
                             urlList.AddRange(dashVideo.GetProperty("backup_url").EnumerateArray().Select(i => i.ToString()));
                             Video v = new()
                             {
@@ -134,7 +134,7 @@ namespace BBDown.Core
                                 dfn = Config.qualitys[videoId],
                                 bandwith = Convert.ToInt64(dashVideo.GetProperty("bandwidth").ToString()) / 1000,
                                 baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
-                                codecs = GetVideoCodec(dashVideo.GetProperty("codecid").ToString()),
+                                codecs = GetVideoCodec(dashVideo.GetProperty("codec_id").ToString()),
                                 size = dashVideo.TryGetProperty("size", out var sizeNode) ? Convert.ToDouble(sizeNode.ToString()) : 0
                             };
                             if (!parsedResult.VideoTracks.Contains(v)) parsedResult.VideoTracks.Add(v);
@@ -144,7 +144,7 @@ namespace BBDown.Core
 
                 foreach(var node in audio)
                 {
-                    var urlList = new List<string>() { node.GetProperty("base_url").ToString() };
+                    var urlList = new List<string>() { node.GetProperty("url").ToString() };
                     urlList.AddRange(node.GetProperty("backup_url").EnumerateArray().Select(i => i.ToString()));
                     Audio a = new()
                     {
