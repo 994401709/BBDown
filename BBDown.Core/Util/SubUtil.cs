@@ -257,7 +257,7 @@ namespace BBDown.Core.Util
             {
                 List<Subtitle> subtitles = new();
                 string api = "https://" + (Config.HOST == "api.bilibili.com" ? "api.bilibili.tv" : Config.HOST) +
-                            $"/intl/gateway/v2/ogv/view/app/season?ep_id={epId}&platform=android&s_locale=en_US" + (Config.TOKEN != "" ? $"&access_key={Config.TOKEN}" : "");
+                            $"/intl/gateway/v2/ogv/view/app/season?ep_id={epId}&platform=android&s_locale=zh_SG" + (Config.TOKEN != "" ? $"&access_key={Config.TOKEN}" : "");
                 string json = await GetWebSourceAsync(api);
                 using var infoJson = JsonDocument.Parse(json);
                 var subs = infoJson.RootElement.GetProperty("result").GetProperty("modules")[0].GetProperty("data")
