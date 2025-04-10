@@ -38,13 +38,14 @@ public static partial class Parser
         {
             StringBuilder apiBuilder = new();
             if (Config.TOKEN != "") apiBuilder.Append($"access_key={Config.TOKEN}&");
-            apiBuilder.Append($"appkey=4409e2ce8ffd12b8&build=106500&cid={cid}&device=android");
+            apiBuilder.Append($"appkey=4409e2ce8ffd12b8&build=106500&cid={cid}&device=android_tv");
             if (bangumi) apiBuilder.Append($"&ep_id={epId}&expire=0");
             apiBuilder.Append($"&fnval=4048&fnver=0&fourk=1&mid=0&mobi_app=android_tv_yst");
             apiBuilder.Append($"&object_id={aid}&platform=android&playurl_type=1&qn={qn}&ts={GetTimeStamp(true)}");
-            apiBuilder.Append("&device_name=MiTV&device_model=MiTV4A");
-            apiBuilder.Append("&appver=106500&network_type=1");
-            api = $"{prefix}{apiBuilder}&sign={GetSign(apiBuilder.ToString(), false)}";
+            apiBuilder.Append("&device_name=MiTV-AFTV");
+            apiBuilder.Append("&device_model=AFTN&network_type=2");
+            string sign = GetSign(apiBuilder.ToString(), true);
+            string api = $"{prefix}{apiBuilder}&sign={sign}";
         }
         else
         {
