@@ -80,12 +80,18 @@ internal partial class Program
         firstEncoding = "";
         if (myOption.EncodingPriority != null)
         {
-            var encodingPriorityTemp = myOption.EncodingPriority.Replace('，', ',').Split(',').Select(s => s.ToUpper().Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList();
+            var encodingPriorityTemp = myOption.EncodingPriority
+                .ToUpper()
+                .Replace('，', ',')
+                .Replace("-", string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(s => !string.IsNullOrEmpty(s)).ToList();
             byte index = 0;
             firstEncoding = encodingPriorityTemp.First();
             foreach (string encoding in encodingPriorityTemp)
             {
-                if (encodingPriority.ContainsKey(encoding)) { continue; }
+                if (encodingPriority.ContainsKey(encoding))
+                    continue;
                 encodingPriority[encoding] = index;
                 index++;
             }
@@ -497,8 +503,6 @@ internal partial class Program
     {
         if (downloadConfig.MultiThread && !url.Contains("-cmcc-"))
         {
-            // 下载前先清理残片
-            foreach (var file in new DirectoryInfo(Path.GetDirectoryName(destPath)!).EnumerateFiles("*.?clip")) file.Delete();
             await MultiThreadDownloadFileAsync(url, destPath, downloadConfig);
             Log($"合并{(video ? "视频" : "音频")}分片...");
             CombineMultipleFilesIntoSingleFile(GetFiles(Path.GetDirectoryName(destPath)!, $".{(video ? "v" : "a")}clip"), destPath);

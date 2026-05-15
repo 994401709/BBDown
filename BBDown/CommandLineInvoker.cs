@@ -13,7 +13,7 @@ internal static class CommandLineInvoker
     private static readonly Option<bool> UseAppApi = new(["--use-app-api", "-app"], "使用APP端解析模式");
     private static readonly Option<bool> UseIntlApi = new(["--use-intl-api", "-intl"], "使用国际版(东南亚视频)解析模式");
     private static readonly Option<bool> UseMP4box = new(["--use-mp4box"], "使用MP4Box来混流");
-    private static readonly Option<string> EncodingPriority = new(["--encoding-priority", "-e"], "视频编码的选择优先级, 用逗号分割 例: \"hevc,av1,avc\"");
+    private static readonly Option<string> EncodingPriority = new(["--encoding-priority", "-e"], "视频及音频编码的选择优先级, 用逗号分割 例: \"hevc,av1,avc,flac,eac3,m4a\"");
     private static readonly Option<string> DfnPriority = new(["--dfn-priority", "-q"], "画质优先级,用逗号分隔 例: \"8K 超高清, 1080P 高码率, HDR 真彩, 杜比视界\"");
     private static readonly Option<bool> OnlyShowInfo = new(["--only-show-info", "-info"], "仅解析而不进行下载");
     private static readonly Option<bool> HideStreams = new(["--hide-streams", "-hs"], "不要显示所有可用音视频流");
@@ -77,6 +77,7 @@ internal static class CommandLineInvoker
     private static readonly Option<string> MultiFilePattern = new(["--multi-file-pattern", "-M"], $"使用内置变量自定义多P存储文件名:\r\n\r\n默认为: {Program.MultiPageDefaultSavePath}\r\n");
     private static readonly Option<string> Host = new(["--host"], "指定BiliPlus host(使用BiliPlus需要access_token, 不需要cookie, 解析服务器能够获取你账号的大部分权限!)");
     private static readonly Option<string> EpHost = new(["--ep-host"], "指定BiliPlus EP host(用于代理api.bilibili.com/pgc/view/web/season, 大部分解析服务器不支持代理该接口)");
+    private static readonly Option<string> TvHost = new(["--tv-host"], "自定义tv端接口请求Host(用于代理api.snm0516.aisee.tv)");
     private static readonly Option<string> Area = new(["--area"], "(hk|tw|th) 使用BiliPlus时必选, 指定BiliPlus area");
     private static readonly Option<string> ConfigFile = new(["--config-file"], "读取指定的BBDown本地配置文件(默认为: BBDown.config)");//以下仅为兼容旧版本命令行, 不建议使用
     private static readonly Option<string> Aria2cProxy = new(["--aria2c-proxy"], "调用aria2c进行下载时的代理地址配置") { IsHidden = true };
@@ -144,6 +145,7 @@ internal static class CommandLineInvoker
             if (bindingContext.ParseResult.HasOption(DelayPerPage)) option.DelayPerPage = bindingContext.ParseResult.GetValueForOption(DelayPerPage)!;
             if (bindingContext.ParseResult.HasOption(Host)) option.Host = bindingContext.ParseResult.GetValueForOption(Host)!;
             if (bindingContext.ParseResult.HasOption(EpHost)) option.EpHost = bindingContext.ParseResult.GetValueForOption(EpHost)!;
+            if (bindingContext.ParseResult.HasOption(TvHost)) option.TvHost = bindingContext.ParseResult.GetValueForOption(TvHost)!;
             if (bindingContext.ParseResult.HasOption(Area)) option.Area = bindingContext.ParseResult.GetValueForOption(Area)!;
             if (bindingContext.ParseResult.HasOption(ConfigFile)) option.ConfigFile = bindingContext.ParseResult.GetValueForOption(ConfigFile)!;
             if (bindingContext.ParseResult.HasOption(Aria2cProxy)) option.Aria2cProxy = bindingContext.ParseResult.GetValueForOption(Aria2cProxy)!;
@@ -208,6 +210,7 @@ internal static class CommandLineInvoker
             DelayPerPage,
             Host,
             EpHost,
+            TvHost,
             Area,
             ConfigFile,
             Aria2cProxy,

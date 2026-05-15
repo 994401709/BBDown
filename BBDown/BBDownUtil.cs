@@ -100,6 +100,31 @@ static partial class BBDownUtil
                 string bizId = GetQueryString("sid", input);
                 avid = $"seriesBizId:{bizId}";
             }
+            // 新版个人空间合集/系列链接兼容：
+            // 例如：
+            //   合集: https://space.bilibili.com/392959666/lists/1560264?type=season
+            //   系列: https://space.bilibili.com/392959666/lists/1560264?type=series
+            else if (input.Contains("/space.bilibili.com/") && input.Contains("/lists/"))
+            {
+                var type = GetQueryString("type", input).ToLower();
+                // path 最后一个 / 后到 ? 前即为 sid
+                var path = input.Split('?', '#')[0];
+                var sidPart = path[(path.LastIndexOf('/') + 1)..];
+
+                if (type == "season")
+                {
+                    avid = $"listBizId:{sidPart}";
+                }
+                else if (type == "series")
+                {
+                    avid = $"seriesBizId:{sidPart}";
+                }
+                else
+                {
+                    // 未知类型按合集处理，至少不会识别失败
+                    avid = $"listBizId:{sidPart}";
+                }
+            }
             else if (input.Contains("/space.bilibili.com/") && input.Contains("/favlist"))
             {
                 string mid = UidRegex().Match(input).Groups[1].Value;
@@ -195,10 +220,17 @@ static partial class BBDownUtil
 
     public static string FormatTime(int time, bool absolute = false)
     {
-        TimeSpan ts = TimeSpan.FromSeconds(time);
-        return !absolute
-            ? (ts.Hours == 0 ? ts.ToString(@"mm\mss\s") : ts.ToString(@"hh\hmm\mss\s"))
-            : ts.ToString(@"hh\:mm\:ss");
+        var ts = TimeSpan.FromSeconds(time);
+        var totalHours = (int)ts.TotalHours;
+        var minutes = ts.Minutes;
+        var seconds = ts.Seconds;
+
+        if (absolute)
+        {
+            return $"{totalHours:D2}:{minutes:D2}:{seconds:D2}";
+        }
+
+        return totalHours == 0 ? $"{minutes:D2}m{seconds:D2}s" : $"{totalHours}h{minutes:D2}m{seconds:D2}s";
     }
 
     /// <summary>
