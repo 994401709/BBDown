@@ -40,7 +40,7 @@ public static partial class Parser
             if (Config.TOKEN != "") apiBuilder.Append($"access_key={Config.TOKEN}&");
             apiBuilder.Append($"appkey=4409e2ce8ffd12b8&build=106500&cid={cid}&device=android_tv");
             if (bangumi) apiBuilder.Append($"&ep_id={epId}&expire=0");
-            apiBuilder.Append($"&fnval=4048&fnver=0&fourk=1&mid=0&mobi_app=android_tv_yst");
+            apiBuilder.Append($"&fnval=159696&fnver=0&fourk=1&mid=0&mobi_app=android_tv_yst");
             apiBuilder.Append($"&object_id={aid}&platform=android&playurl_type=1&qn={qn}&ts={GetTimeStamp(true)}");
             api = $"{prefix}{apiBuilder}&sign={GetSign(apiBuilder.ToString(), false)}";
         }
@@ -48,7 +48,7 @@ public static partial class Parser
         {
             // 尝试提高可读性
             StringBuilder apiBuilder = new();
-            apiBuilder.Append($"support_multi_audio=true&from_client=BROWSER&avid={aid}&cid={cid}&fnval=4048&fnver=0&fourk=1");
+            apiBuilder.Append($"support_multi_audio=true&from_client=BROWSER&avid={aid}&cid={cid}&fnval=159696&fnver=0&fourk=1");
             if (Config.AREA != "") apiBuilder.Append($"&access_key={Config.TOKEN}&area={Config.AREA}");
             apiBuilder.Append($"&otype=json&qn={qn}");
             if (bangumi) apiBuilder.Append($"&module=bangumi&ep_id={epId}&session=");
