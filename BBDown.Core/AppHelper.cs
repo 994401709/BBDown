@@ -213,7 +213,7 @@ static class AppHelper
             Cid = cid,
             //obj.Qn = qn;
             Qn = 127,
-            Fnval = 4048,
+            Fnval = 159696,
             Fourk = true,
             Spmid = "main.ugc-video-detail.0.0",
             FromSpmid = "main.my-history.0.0",
