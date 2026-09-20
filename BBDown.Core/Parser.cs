@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using static BBDown.Core.Logger;
@@ -47,30 +47,60 @@ public static partial class Parser
         else
         {
             // 尝试提高可读性
+            string fnval = "159696";
             StringBuilder apiBuilder = new();
-            apiBuilder.Append($"support_multi_audio=true&from_client=BROWSER&avid={aid}&cid={cid}&fnval=159696&fnver=0&fourk=1");
+            apiBuilder.Append($"support_multi_audio=true&from_client=BROWSER&avid={aid}&cid={cid}&fnval={fnval}&fnver=0&fourk=1");
             if (Config.AREA != "") apiBuilder.Append($"&access_key={Config.TOKEN}&area={Config.AREA}");
             apiBuilder.Append($"&otype=json&qn={qn}");
             if (bangumi) apiBuilder.Append($"&module=bangumi&ep_id={epId}&session=");
             if (Config.COOKIE == "") apiBuilder.Append("&try_look=1");
             apiBuilder.Append($"&wts={GetTimeStamp(true)}");
             api = prefix + (bangumi ? apiBuilder.ToString() : WbiSign(apiBuilder.ToString()));
+
+            //课程接口
+            if (cheese) api = api.Replace("/pgc/", "/pugv/");
+
+            //Console.WriteLine(api);
+            string webJson = await GetWebSourceAsync(api);
+
+            // 非番剧网页端：159696 可能返回 -400，降级为 4048 重试
+            if (!bangumi && fnval != "4048" && webJson.Contains("\"code\":-400"))
+            {
+                fnval = "4048";
+                apiBuilder.Replace("fnval=159696", "fnval=4048");
+                api = prefix + (bangumi ? apiBuilder.ToString() : WbiSign(apiBuilder.ToString()));
+                if (cheese) api = api.Replace("/pgc/", "/pugv/");
+                webJson = await GetWebSourceAsync(api);
+            }
+
+            //以下情况从网页源代码尝试解析
+            if (webJson.Contains("\"大会员专享限制\""))
+            {
+                Log("此视频需要大会员，您大概率需要登录一个有大会员的账号才可以下载，尝试从网页源码解析");
+                string webUrl = "https://www.bilibili.com/bangumi/play/ep" + epId;
+                string webSource = await GetWebSourceAsync(webUrl);
+                webJson = PlayerJsonRegex().Match(webSource).Groups[1].Value;
+            }
+            return webJson;
         }
 
-        //课程接口
-        if (cheese) api = api.Replace("/pgc/", "/pugv/");
-
-        //Console.WriteLine(api);
-        string webJson = await GetWebSourceAsync(api);
-        //以下情况从网页源代码尝试解析
-        if (webJson.Contains("\"大会员专享限制\""))
+        // TV 分支才走到这里
         {
-            Log("此视频需要大会员，您大概率需要登录一个有大会员的账号才可以下载，尝试从网页源码解析");
-            string webUrl = "https://www.bilibili.com/bangumi/play/ep" + epId;
-            string webSource = await GetWebSourceAsync(webUrl);
-            webJson = PlayerJsonRegex().Match(webSource).Groups[1].Value;
+            //课程接口
+            if (cheese) api = api.Replace("/pgc/", "/pugv/");
+
+            //Console.WriteLine(api);
+            string webJson = await GetWebSourceAsync(api);
+            //以下情况从网页源代码尝试解析
+            if (webJson.Contains("\"大会员专享限制\""))
+            {
+                Log("此视频需要大会员，您大概率需要登录一个有大会员的账号才可以下载，尝试从网页源码解析");
+                string webUrl = "https://www.bilibili.com/bangumi/play/ep" + epId;
+                string webSource = await GetWebSourceAsync(webUrl);
+                webJson = PlayerJsonRegex().Match(webSource).Groups[1].Value;
+            }
+            return webJson;
         }
-        return webJson;
     }
 
     private static async Task<string> GetPlayJsonAsync(string aid, string cid, string epId, string qn, string code = "0")
